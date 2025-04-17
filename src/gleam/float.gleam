@@ -63,6 +63,19 @@ pub fn parse(string: String) -> Result(Float, Nil)
 @external(javascript, "../gleam_stdlib.mjs", "float_to_string")
 pub fn to_string(x: Float) -> String
 
+/// Returns the string representation of the provided `Float`.
+///
+/// ## Examples
+///
+/// ```gleam
+/// to_string(2.3)
+/// // -> "2.3"
+/// ```
+///
+@external(erlang, "gleam_stdlib", "float_to_fixed_string")
+@external(javascript, "../gleam_stdlib.mjs", "float_to_fixed_string")
+pub fn to_fixed_string(x: Float, precision: Int) -> String
+
 /// Restricts a `Float` between a lower and upper bound.
 ///
 /// ## Examples

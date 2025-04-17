@@ -113,6 +113,68 @@ pub fn to_string_test() {
   |> should.equal("-4.5612e-76")
 }
 
+pub fn to_fixed_string_test() {
+  0.0
+  |> float.to_fixed_string(2)
+  |> should.equal("0.00")
+
+  0.0123
+  |> float.to_fixed_string(2)
+  |> should.equal("0.01")
+
+  -0.0123
+  |> float.to_fixed_string(2)
+  |> should.equal("-0.01")
+
+  12.67
+  |> float.to_fixed_string(2)
+  |> should.equal("12.67")
+
+  -12.67
+  |> float.to_fixed_string(2)
+  |> should.equal("-12.67")
+
+  123.0
+  |> float.to_fixed_string(2)
+  |> should.equal("123.00")
+
+  -123.0
+  |> float.to_fixed_string(2)
+  |> should.equal("-123.00")
+
+  3.0e26
+  |> float.to_fixed_string(2)
+  |> should.equal("3.0e26")
+
+  -3.0e26
+  |> float.to_fixed_string(2)
+  |> should.equal("-3.0e26")
+
+  3.0e-26
+  |> float.to_fixed_string(2)
+  |> should.equal("3.0e-26")
+
+  -3.0e-26
+  |> float.to_fixed_string(2)
+  |> should.equal("-3.0e-26")
+
+  456.12e78
+  |> float.to_fixed_string(2)
+  |> should.equal("4.5612e80")
+
+  -456.12e78
+  |> float.to_fixed_string(2)
+  |> should.equal("-4.5612e80")
+
+  456.12e-78
+  |> float.to_fixed_string(2)
+  |> should.equal("4.5612e-76")
+
+  -456.12e-78
+  |> float.to_fixed_string(2)
+  |> should.equal("-4.5612e-76")
+}
+
 pub fn clamp_test() {
   float.clamp(1.4, min: 1.3, max: 1.5)
   |> should.equal(1.4)

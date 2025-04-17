@@ -56,6 +56,20 @@ export function float_to_string(float) {
   }
 }
 
+export function float_to_fixed_string(float, precision) {
+  const string = float.toFixed(precision).replace("+", "");
+  if (string.indexOf(".") >= 0) {
+    return string;
+  } else {
+    const index = string.indexOf("e");
+    if (index >= 0) {
+      return string.slice(0, index) + ".0" + string.slice(index);
+    } else {
+      return string + ".0";
+    }
+  }
+}
+
 export function int_to_base_string(int, base) {
   return int.toString(base).toUpperCase();
 }
