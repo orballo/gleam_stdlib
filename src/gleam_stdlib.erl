@@ -501,7 +501,7 @@ float_to_string(Float) when is_float(Float) ->
     erlang:iolist_to_binary(io_lib_format:fwrite_g(Float)).
 
 float_to_fixed_string(Float, Precision) when is_float(Float) ->
-    erlang:iolist_to_binary(io_lib_format:fwrite_g(Float)).
+    erlang:iolist_to_binary(io_lib_format:fwrite("~.*f", [Precision, Float])).
 
 utf_codepoint_list_to_string(List) ->
     case unicode:characters_to_binary(List) of
