@@ -63,13 +63,25 @@ pub fn parse(string: String) -> Result(Float, Nil)
 @external(javascript, "../gleam_stdlib.mjs", "float_to_string")
 pub fn to_string(x: Float) -> String
 
-/// Returns the string representation of the provided `Float`.
+/// Returns the string representation of the provided `Float` with a fixed number of decimal places.
+///
+/// The `precision` parameter determines the number of digits to appear after the decimal point.
 ///
 /// ## Examples
 ///
 /// ```gleam
-/// to_string(2.3)
-/// // -> "2.3"
+/// to_fixed_string(2.3456, 2)
+/// // -> "2.35"
+/// ```
+///
+/// ```gleam
+/// to_fixed_string(2.3, 4)
+/// // -> "2.3000"
+/// ```
+///
+/// ```gleam
+/// to_fixed_string(123.456, 0)
+/// // -> "123"
 /// ```
 ///
 @external(erlang, "gleam_stdlib", "float_to_fixed_string")
