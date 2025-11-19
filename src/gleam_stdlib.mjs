@@ -44,24 +44,6 @@ export function to_string(term) {
   return term.toString();
 }
 
-export function float_to_string(float) {
-  const string = float.toString().replace("+", "");
-  if (string.indexOf(".") >= 0) {
-    return string;
-  } else {
-    const index = string.indexOf("e");
-    if (index >= 0) {
-      return string.slice(0, index) + ".0" + string.slice(index);
-    } else {
-      return string + ".0";
-    }
-  }
-}
-
-export function float_to_fixed_string(float, precision) {
-  return float.toFixed(precision);
-}
-
 export function int_to_base_string(int, base) {
   return int.toString(base).toUpperCase();
 }
@@ -693,6 +675,10 @@ export function float_to_string(float) {
       return string + ".0";
     }
   }
+}
+
+export function float_to_fixed_string(float, precision) {
+  return float.toFixed(precision);
 }
 
 class Inspector {
