@@ -18,10 +18,29 @@ export function object(items) {
   }
   return object;
 }
+
 export function map(items) {
   const object = new Map();
   for (const [k, v] of items) {
     object.set(k, v);
   }
   return object;
+}
+
+const singleton = { a: 1 };
+
+export function singleton_object() {
+  return singleton;
+}
+
+export function circular_reference() {
+  const x = [1, 2, 3];
+  x.push(x);
+  return x;
+}
+
+export function js_error() {
+  const error = new Error("Oh no!");
+  error.name = "SomeError";
+  return error;
 }

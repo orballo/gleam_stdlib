@@ -1,7 +1,68 @@
 # Changelog
 
-## Unreleased
+## v0.66.0 - 2025-10-21
 
+- The `tap` function from the `function` module has been deprecated.
+
+## v0.65.0 - 2025-09-29
+
+- The performance of the `drop_start` function from the `string` module has
+  been improved.
+
+## v0.64.0 - 2025-09-25
+
+- The `unwrap_both` function of the `result` module has been deprecated.
+
+## v0.63.2 - 2025-09-15
+
+- The performance of the `list.permutations` function has been improved.
+
+## v0.63.1 - 2025-09-12
+
+- The performance of the `string.drop_start` function has been improved.
+- `string.slice` now correctly handles zero-length slices.
+
+## v0.63.0 - 2025-09-07
+
+- The performance of the `string.repeat` function has been improved. It now runs
+  in loglinear time.
+- Fixed a bug in the `uri.parse` function where parsing a uri with an empty port
+  would produce an invalid value.
+
+## v0.62.1 - 2025-08-07
+
+- `string.inspect` now shows Erlang atoms as `atom.create("value")`, to match
+  the latest version of `gleam_erlang`.
+
+## v0.62.0 - 2025-07-10
+
+- The `digits` and `undigits` functions of the `int` module have been deprecated.
+
+## v0.61.0 - 2025-06-28
+
+- The fallback code for older NodeJS versions in the JavaScript target
+  implementation of `string.replace` has been removed.
+- The `inspect` function in the `string` module will now print lists of ascii
+  characters in a human readable format, to aid with debugging programs that use
+  Erlang character lists.
+- The deprecated `debug` function in the `io` module has been removed.
+- The deprecated `from` function in the `dynamic` module has been removed.
+- Fixed a bug in the `sample` function from the `list` module where it would end
+  up picking the same element twice from a given list.
+- Improved formatting of JavaScript errors in `string.inspect`.
+- JavaScript circular references can now be printed by `string.inspect`.
+- The alias `result.then` was deprecated in favour of using `result.try`
+  directly.
+
+## v0.60.0 - 2025-05-13
+
+- The deprecated items in the `dynamic` module have been removed.
+- The `from` function in the `dynamic` module has been deprecated.
+- The `array`, `bit_array`, `bool`, `float`, `int`, `list`, `nil`, `properties`,
+  and `string` functions have been added to the `dynamic` module.
+- The `classify` function in the `dynamic` module now understands more Erlang
+  types and uses the term "Array" rather than "Tuple" for Erlang tuples and
+  JavaScript arrays.
 - The performance of various functions in the `list` module has been improved.
 - Fixed the implementation of `option.values` and `option.all` to be tail
   recursive.
@@ -78,7 +139,7 @@
 
 ## v0.48.0 - 2024-12-17
 
-- Fixed a bug where `string.utf_codepoint` would erronously accept negative input.
+- Fixed a bug where `string.utf_codepoint` would erroneously accept negative input.
 - The deprecated `string_builder` and `bytes_builder` modules have been removed.
 
 ## v0.47.0 - 2024-12-10

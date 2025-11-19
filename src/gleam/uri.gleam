@@ -363,20 +363,23 @@ fn parse_port(uri_string: String, pieces: Uri) -> Result(Uri, Nil) {
     ":8" <> rest -> parse_port_loop(rest, pieces, 8)
     ":9" <> rest -> parse_port_loop(rest, pieces, 9)
 
-    // It means the port segment is not composed of numbers, the port is invalid
-    // and so is the uri!
-    ":" <> _ -> Error(Nil)
+    // The port could be empty and be followed by any of the next delimiters.
+    // Like `:#`, `:?` or `:/`
+    ":" | "" -> Ok(pieces)
 
     // `?` marks the beginning of the query with question mark.
-    "?" <> rest -> parse_query_with_question_mark(rest, pieces)
+    "?" <> rest | ":?" <> rest -> parse_query_with_question_mark(rest, pieces)
 
     // `#` marks the beginning of the fragment part.
-    "#" <> rest -> parse_fragment(rest, pieces)
+    "#" <> rest | ":#" <> rest -> parse_fragment(rest, pieces)
 
     // `/` marks the beginning of a path.
     "/" <> _ -> parse_path(uri_string, pieces)
-
-    "" -> Ok(pieces)
+    ":" <> rest ->
+      case rest {
+        "/" <> _ -> parse_path(rest, pieces)
+        _ -> Error(Nil)
+      }
 
     _ -> Error(Nil)
   }
@@ -706,7 +709,8 @@ pub fn merge(base: Uri, relative: Uri) -> Result(Uri, Nil) {
       case relative {
         Uri(host: Some(_), ..) -> {
           let path =
-            string.split(relative.path, "/")
+            relative.path
+            |> string.split("/")
             |> remove_dot_segments()
             |> join_segments()
           let resolved =
@@ -728,7 +732,8 @@ pub fn merge(base: Uri, relative: Uri) -> Result(Uri, Nil) {
               let path_segments = case string.starts_with(relative.path, "/") {
                 True -> string.split(relative.path, "/")
                 False ->
-                  string.split(base.path, "/")
+                  base.path
+                  |> string.split("/")
                   |> drop_last()
                   |> list.append(string.split(relative.path, "/"))
               }

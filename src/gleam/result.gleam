@@ -165,8 +165,7 @@ pub fn try(
   }
 }
 
-/// An alias for `try`. See the documentation for that function for more information.
-///
+@deprecated("This function is an alias of result.try, use that instead")
 pub fn then(
   result: Result(a, e),
   apply fun: fn(a) -> Result(b, e),
@@ -240,21 +239,7 @@ pub fn unwrap_error(result: Result(a, e), or default: e) -> e {
   }
 }
 
-/// Extracts the inner value from a result. Both the value and error must be of
-/// the same type.
-///
-/// ## Examples
-///
-/// ```gleam
-/// unwrap_both(Error(1))
-/// // -> 1
-/// ```
-///
-/// ```gleam
-/// unwrap_both(Ok(2))
-/// // -> 2
-/// ```
-///
+@deprecated("Use a case expression instead of this function")
 pub fn unwrap_both(result: Result(a, a)) -> a {
   case result {
     Ok(a) -> a

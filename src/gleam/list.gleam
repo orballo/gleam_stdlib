@@ -133,9 +133,10 @@ pub fn reverse(list: List(a)) -> List(a) {
 }
 
 /// Reverses a list and prepends it to another list.
-/// This function runs in linear time, proportional to the lenght of the list
+/// This function runs in linear time, proportional to the length of the list
 /// to prepend.
 ///
+@external(erlang, "lists", "reverse")
 fn reverse_and_prepend(list prefix: List(a), to suffix: List(a)) -> List(a) {
   case prefix {
     [] -> suffix
@@ -701,7 +702,8 @@ pub fn prepend(to list: List(a), this item: a) -> List(a) {
 
 /// Joins a list of lists into a single list.
 ///
-/// This function traverses all elements twice.
+/// This function traverses all elements twice on the JavaScript target.
+/// This function traverses all elements once on the Erlang target.
 ///
 /// ## Examples
 ///
@@ -710,6 +712,7 @@ pub fn prepend(to list: List(a), this item: a) -> List(a) {
 /// // -> [1, 2, 3]
 /// ```
 ///
+@external(erlang, "lists", "append")
 pub fn flatten(lists: List(List(a))) -> List(a) {
   flatten_loop(lists, [])
 }
@@ -782,7 +785,16 @@ pub fn fold_right(
 ///
 /// ```gleam
 /// ["a", "b", "c"]
-/// |> index_fold([], fn(acc, item, index) { ... })
+/// |> index_fold("", fn(acc, item, index) {
+///    acc <> int.to_string(index) <> ":" <> item <> " "
+/// })
+/// // -> "0:a 1:b 2:c"
+/// ```
+///
+/// ```gleam
+/// [10, 20, 30]
+/// |> index_fold(0, fn(acc, item, index) { acc + item * index })
+/// // -> 80
 /// ```
 ///
 pub fn index_fold(
@@ -1832,19 +1844,39 @@ fn partition_loop(list, categorise, trues, falses) {
 pub fn permutations(list: List(a)) -> List(List(a)) {
   case list {
     [] -> [[]]
-    [_, ..] ->
-      index_map(list, fn(i, i_idx) {
-        index_fold(list, [], fn(acc, j, j_idx) {
-          case i_idx == j_idx {
-            True -> acc
-            False -> [j, ..acc]
-          }
-        })
-        |> reverse
-        |> permutations
-        |> map(fn(permutation) { [i, ..permutation] })
-      })
-      |> flatten
+    l -> permutation_zip(l, [], [])
+  }
+}
+
+fn permutation_zip(
+  list: List(a),
+  rest: List(a),
+  acc: List(List(a)),
+) -> List(List(a)) {
+  case list {
+    [] -> reverse(acc)
+    [head, ..tail] ->
+      permutation_prepend(
+        head,
+        permutations(reverse_and_prepend(rest, tail)),
+        tail,
+        [head, ..rest],
+        acc,
+      )
+  }
+}
+
+fn permutation_prepend(
+  el: a,
+  permutations: List(List(a)),
+  list_1: List(a),
+  list_2: List(a),
+  acc: List(List(a)),
+) -> List(List(a)) {
+  case permutations {
+    [] -> permutation_zip(list_1, list_2, acc)
+    [head, ..tail] ->
+      permutation_prepend(el, tail, list_1, list_2, [[el, ..head], ..acc])
   }
 }
 
@@ -2140,7 +2172,8 @@ pub fn combinations(items: List(a), by n: Int) -> List(List(a)) {
     0, _ -> [[]]
     _, [] -> []
     _, [first, ..rest] ->
-      combinations(rest, n - 1)
+      rest
+      |> combinations(n - 1)
       |> map(fn(combination) { [first, ..combination] })
       |> reverse
       |> fold(combinations(rest, n), fn(acc, c) { [c, ..acc] })
@@ -2181,7 +2214,8 @@ fn combination_pairs_loop(items: List(a), acc: List(#(a, a))) -> List(#(a, a)) {
 /// ```
 ///
 pub fn interleave(list: List(List(a))) -> List(a) {
-  transpose(list)
+  list
+  |> transpose
   |> flatten
 }
 
@@ -2299,8 +2333,9 @@ fn max_loop(list, compare, max) {
   }
 }
 
-/// Take a random sample of k elements from a list using reservoir sampling via
-/// Algo L. Returns an empty list if the sample size is less than or equal to 0.
+/// Returns a random sample of up to n elements from a list using reservoir
+/// sampling via [Algorithm L](https://en.wikipedia.org/wiki/Reservoir_sampling#Optimal:_Algorithm_L).
+/// Returns an empty list if the sample size is less than or equal to 0.
 ///
 /// Order is not random, only selection is.
 ///
@@ -2311,55 +2346,81 @@ fn max_loop(list, compare, max) {
 /// // -> [2, 4, 5]  // A random sample of 3 items
 /// ```
 ///
-pub fn sample(list: List(a), k: Int) -> List(a) {
-  case k <= 0 {
+pub fn sample(from list: List(a), up_to n: Int) -> List(a) {
+  let #(reservoir, rest) = build_reservoir(from: list, sized: n)
+
+  case dict.is_empty(reservoir) {
+    // If the reservoire is empty that means we were asking to sample 0 or
+    // less items. That doesn't make much sense, so we just return an empty
+    // list.
     True -> []
+
+    // Otherwise we keep looping over the remaining part of the list replacing
+    // random elements in the reservoir.
     False -> {
-      let #(reservoir, list) = split(list, k)
-
-      case length(reservoir) < k {
-        True -> reservoir
-        False -> {
-          let reservoir =
-            reservoir
-            |> map2(range(0, k - 1), _, fn(a, b) { #(a, b) })
-            |> dict.from_list
-
-          let w = float.exponential(log_random() /. int.to_float(k))
-
-          sample_loop(list, reservoir, k, k, w) |> dict.values
-        }
-      }
+      let w = float.exponential(log_random() /. int.to_float(n))
+      dict.values(sample_loop(rest, reservoir, n, w))
     }
   }
 }
 
 fn sample_loop(
-  list,
+  list: List(a),
   reservoir: Dict(Int, a),
-  k,
-  index: Int,
+  n: Int,
   w: Float,
 ) -> Dict(Int, a) {
   let skip = {
-    let assert Ok(log_result) = float.logarithm(1.0 -. w)
-    log_random() /. log_result |> float.floor |> float.round
+    let assert Ok(log) = float.logarithm(1.0 -. w)
+    float.round(float.floor(log_random() /. log))
   }
-
-  let index = index + skip + 1
 
   case drop(list, skip) {
     [] -> reservoir
     [first, ..rest] -> {
-      let reservoir = dict.insert(reservoir, int.random(k), first)
-      let w = w *. float.exponential(log_random() /. int.to_float(k))
-      sample_loop(rest, reservoir, k, index, w)
+      let reservoir = dict.insert(reservoir, int.random(n), first)
+      let w = w *. float.exponential(log_random() /. int.to_float(n))
+      sample_loop(rest, reservoir, n, w)
     }
   }
 }
 
+const min_positive = 2.2250738585072014e-308
+
 fn log_random() -> Float {
-  let min_positive = 2.2250738585072014e-308
   let assert Ok(random) = float.logarithm(float.random() +. min_positive)
   random
+}
+
+/// Builds the initial reservoir used by Algorithm L.
+/// This is a dictionary with keys ranging from `0` up to `n - 1` where each
+/// value is the corresponding element at that position in `list`.
+///
+/// This also returns the remaining elements of `list` that didn't end up in
+/// the reservoir.
+///
+fn build_reservoir(from list: List(a), sized n: Int) -> #(Dict(Int, a), List(a)) {
+  build_reservoir_loop(list, n, dict.new())
+}
+
+fn build_reservoir_loop(
+  list: List(a),
+  size: Int,
+  reservoir: Dict(Int, a),
+) -> #(Dict(Int, a), List(a)) {
+  let reservoir_size = dict.size(reservoir)
+  case reservoir_size >= size {
+    // The reservoir already has the size we wanted.
+    True -> #(reservoir, list)
+
+    // Otherwise we add another element from the list to the reservoir
+    False ->
+      case list {
+        [] -> #(reservoir, [])
+        [first, ..rest] -> {
+          let reservoir = dict.insert(reservoir, reservoir_size, first)
+          build_reservoir_loop(rest, size, reservoir)
+        }
+      }
+  }
 }

@@ -65,7 +65,8 @@ pub fn absolute_value(x: Int) -> Int {
 /// ```
 ///
 pub fn power(base: Int, of exponent: Float) -> Result(Float, Nil) {
-  to_float(base)
+  base
+  |> to_float
   |> float.power(exponent)
 }
 
@@ -84,7 +85,8 @@ pub fn power(base: Int, of exponent: Float) -> Result(Float, Nil) {
 /// ```
 ///
 pub fn square_root(x: Int) -> Result(Float, Nil) {
-  to_float(x)
+  x
+  |> to_float
   |> float.square_root()
 }
 
@@ -443,21 +445,7 @@ fn product_loop(numbers: List(Int), initial: Int) -> Int {
   }
 }
 
-/// Splits an integer into its digit representation in the specified base.
-/// Returns an error if the base is less than 2.
-///
-/// ## Examples
-///
-/// ```gleam
-/// digits(234, 10)
-/// // -> Ok([2,3,4])
-/// ```
-///
-/// ```gleam
-/// digits(234, 1)
-/// // -> Error(Nil)
-/// ```
-///
+@deprecated("Vendor this function into your codebase")
 pub fn digits(x: Int, base: Int) -> Result(List(Int), Nil) {
   case base < 2 {
     True -> Error(Nil)
@@ -472,26 +460,7 @@ fn digits_loop(x: Int, base: Int, acc: List(Int)) -> List(Int) {
   }
 }
 
-/// Joins a list of digits into a single value.
-/// Returns an error if the base is less than 2 or if the list contains a digit greater than or equal to the specified base.
-///
-/// ## Examples
-///
-/// ```gleam
-/// undigits([2,3,4], 10)
-/// // -> Ok(234)
-/// ```
-///
-/// ```gleam
-/// undigits([2,3,4], 1)
-/// // -> Error(Nil)
-/// ```
-///
-/// ```gleam
-/// undigits([2,3,4], 2)
-/// // -> Error(Nil)
-/// ```
-///
+@deprecated("Vendor this function into your codebase")
 pub fn undigits(numbers: List(Int), base: Int) -> Result(Int, Nil) {
   case base < 2 {
     True -> Error(Nil)
